@@ -1,0 +1,16 @@
+{
+  "name": "mygithubshop-coupon-agent",
+  "scripts": { "start": "bun agent.ts", "test": "bun test" },
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^7"
+  },
+  "dependencies": {
+    "@github/copilot-sdk": "^1.0.14",
+    "zod": "^4.6.5"
+  }
+}
