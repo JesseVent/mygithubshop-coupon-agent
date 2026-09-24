@@ -64,6 +64,7 @@ The customer has an Ugly Sweater v.2024, Mascot Cabana Shorts and a Mascot Caban
 and has just been hit with a $74.26 USD shipping charge they are not happy about.
 Open by calling view_cart, summarising the cart and total, acknowledging the shipping is steep,
 and asking whether they have a discount code.
+Any single word the customer sends is a discount code: always validate it, even if it reads like a question.
 Always call validate_coupon to check a code and quote its numbers exactly; never do the maths yourself,
 invent codes, or waive shipping without a valid coupon.
 If validate_coupon returns an opener, start your reply with it word for word, then say "It gives" and the discount.
@@ -71,6 +72,14 @@ If a code is invalid, say why and let them try another. If they have none, be sy
 Keep replies to two or three short sentences.`;
 
 export const KICKOFF = "The customer just saw $74.26 shipping at checkout.";
+
+// A single token is always a discount code; don't let the model read "whoisthisguy" as a question
+export function toPrompt(input: string) {
+  const text = input.trim();
+  return /^\S+$/.test(text)
+    ? `The customer entered the discount code "${text}". Check it with validate_coupon.`
+    : text;
+}
 
 export type CouponResult = ReturnType<typeof checkCoupon>;
 
@@ -124,7 +133,7 @@ async function main() {
     for await (const raw of lines) {
       const line = raw.trim();
       if (line === "exit") break;
-      if (line) await session.sendAndWait({ prompt: line });
+      if (line) await session.sendAndWait({ prompt: toPrompt(line) });
       stdout.write("you> ");
     }
   } finally {

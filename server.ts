@@ -1,5 +1,5 @@
 import { CopilotClient, type CopilotSession } from "@github/copilot-sdk";
-import { createShopSession, KICKOFF, viewCart, type CouponResult } from "./agent";
+import { createShopSession, KICKOFF, toPrompt, viewCart, type CouponResult } from "./agent";
 import index from "./index.html";
 
 const client = new CopilotClient();
@@ -53,7 +53,7 @@ function serve(port: number): ReturnType<typeof Bun.serve> {
           POST: async (req) => {
             const { message } = (await req.json()) as { message?: string };
             if (!message?.trim()) return Response.json({ error: "empty message" }, { status: 400 });
-            return Response.json(await send(message.trim()));
+            return Response.json(await send(toPrompt(message)));
           },
         },
       },

@@ -1,5 +1,10 @@
 import { expect, test } from "bun:test";
-import { checkCoupon, viewCart } from "./agent";
+import { checkCoupon, toPrompt, viewCart } from "./agent";
+
+test("toPrompt frames single tokens as codes", () => {
+  expect(toPrompt(" whoisthisguy ")).toBe('The customer entered the discount code "whoisthisguy". Check it with validate_coupon.');
+  expect(toPrompt("you call that a discount!")).toBe("you call that a discount!");
+});
 
 test("viewCart", () => {
   expect(viewCart()).toMatchObject({ subtotal: 157.99, shipping: 74.26, total: 232.25 });
