@@ -70,12 +70,15 @@ If validate_coupon returns an opener, start your reply with it word for word, th
 If a code is invalid, say why and let them try another. If they have none, be sympathetic but keep the price.
 Keep replies to two or three short sentences.`;
 
-async function main() {
+export const KICKOFF = "The customer just saw $74.26 shipping at checkout.";
+
+export type CouponResult = ReturnType<typeof checkCoupon>;
+
+export function createShopSession(client: CopilotClient, onCoupon?: (code: string, result: CouponResult) => void) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("Set OPENAI_API_KEY");
 
-  const client = new CopilotClient();
-  const session = await client.createSession({
+  return client.createSession({
     model: process.env.MODEL ?? "gpt-5.4-mini",
     // GPT-5 series needs the responses wire API
     provider: { type: "openai", baseUrl: "https://api.openai.com/v1", apiKey, wireApi: "responses" },
@@ -91,13 +94,22 @@ async function main() {
         description: "Check a GitHub Shop discount code and return the recalculated order totals",
         parameters: z.object({ code: z.string().describe("Discount code the customer entered") }),
         skipPermission: true,
-        handler: async ({ code }) => checkCoupon(code),
+        handler: async ({ code }) => {
+          const result = checkCoupon(code);
+          onCoupon?.(code, result);
+          return result;
+        },
       }),
     ],
     // Only the shop tools: no shell or file access for a shop bot
     availableTools: new ToolSet().addCustom("view_cart").addCustom("validate_coupon"),
     onPermissionRequest: approveAll,
   });
+}
+
+async function main() {
+  const client = new CopilotClient();
+  const session = await createShopSession(client);
 
   session.on("assistant.message", (event) => {
     if (event.data.content) console.log(`\nshop> ${event.data.content}\n`);
@@ -107,7 +119,7 @@ async function main() {
   // Grab the iterator now so lines typed/piped during the greeting are buffered
   const lines = rl[Symbol.asyncIterator]();
   try {
-    await session.sendAndWait({ prompt: "The customer just saw $74.26 shipping at checkout." });
+    await session.sendAndWait({ prompt: KICKOFF });
     stdout.write("you> ");
     for await (const raw of lines) {
       const line = raw.trim();

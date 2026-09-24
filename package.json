@@ -1,6 +1,6 @@
 {
   "name": "mygithubshop-coupon-agent",
-  "scripts": { "start": "bun agent.ts", "test": "bun test" },
+  "scripts": { "start": "bun agent.ts", "test": "bun test", "ui": "bun server.ts" },
   "type": "module",
   "private": true,
   "devDependencies": {
