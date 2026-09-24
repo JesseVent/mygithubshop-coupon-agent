@@ -27,7 +27,8 @@ shop> This guy is someone that really wants this ensemble but on principle refus
 ```bash
 bun install
 echo 'OPENAI_API_KEY=sk-...' > .env   # MODEL=... to override gpt-5.4-mini
-bun start
+bun start   # terminal
+bun ui      # web UI on http://localhost:3000
 bun test
 ```
 
