@@ -58,9 +58,10 @@
     .summary { background: var(--panel); padding: 24px; }
     .item { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
     .thumb {
-      width: 56px; height: 56px; flex: none; display: grid; place-items: center; font-size: 28px;
+      width: 64px; aspect-ratio: 4 / 5; flex: none; overflow: hidden;
       background: #fff; border: 1px solid var(--border); border-radius: 10px;
     }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .item .name { font-weight: 500; }
     .item .meta { font-size: 13px; color: var(--muted); }
     .item .price { margin-left: auto; font-variant-numeric: tabular-nums; }
@@ -111,7 +112,22 @@
     </aside>
   </main>
   <script>
-    const THUMBS = { "Ugly Sweater v.2024": "🎄", "Mascot Cabana Shorts": "🩳", "Mascot Cabana Top": "🌺" };
+    // Product photos from the shop's own CDN (same images as the real cart page)
+    const CDN = "https://thegithubshop.com/cdn/shop/files/";
+    const THUMBS = {
+      "Ugly Sweater v.2024": {
+        src: CDN + "Apparel_Universe24_Shirt_4892af59-adfd-4300-915a-4f2a1fdd288f.jpg?v=1734127378&width=300",
+        alt: "Red, green, black and white GitHub holiday sweater with festive pattern",
+      },
+      "Mascot Cabana Shorts": {
+        src: CDN + "1560813.jpg?v=1779897935&width=300",
+        alt: "Blue drawstring shorts with floral, Copilot, Mona and Ducky pattern",
+      },
+      "Mascot Cabana Top": {
+        src: CDN + "Cabana_Set_PDP.png?v=1779981348&width=300",
+        alt: "Man in a cabana shirt and shorts sitting on a chair, holding drinks",
+      },
+    };
     const $ = (id) => document.getElementById(id);
     const money = (n) => "$" + n.toFixed(2);
     let baseShipping = 0;
@@ -175,7 +191,7 @@
       baseShipping = data.cart.shipping;
       $("items").innerHTML = data.cart.items.map((i) => `
         <div class="item">
-          <div class="thumb" aria-hidden="true">${THUMBS[i.item] ?? "🛍"}</div>
+          <div class="thumb">${THUMBS[i.item] ? `<img src="${THUMBS[i.item].src}" alt="${THUMBS[i.item].alt}" />` : ""}</div>
           <div><div class="name">${i.item}</div><div class="meta">Size ${i.size} · Qty 1</div></div>
           <div class="price">${money(i.price)}</div>
         </div>`).join("");
