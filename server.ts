@@ -3,6 +3,18 @@ import { createShopSession, KICKOFF, viewCart, type CouponResult } from "./agent
 import index from "./index.html";
 
 const client = new CopilotClient();
+
+// ponytail: USD→AUD rate fetched once per server start; refresh per request if it ever runs for days
+async function fetchAudRate(): Promise<{ rate: number; date: string } | null> {
+  try {
+    const res = await fetch("https://api.frankfurter.dev/v1/latest?from=USD&to=AUD");
+    const data = (await res.json()) as { date: string; rates: { AUD: number } };
+    return { rate: data.rates.AUD, date: data.date };
+  } catch {
+    return null;
+  }
+}
+const aud = await fetchAudRate();
 // ponytail: one global session, fine for a local single-user demo; key sessions by cookie if ever hosted
 let session: CopilotSession | undefined;
 let applied: { code: string; result: CouponResult } | undefined;
@@ -34,7 +46,7 @@ function serve(port: number): ReturnType<typeof Bun.serve> {
             session = await createShopSession(client, (code, result) => {
               if (result.valid) applied = { code: code.trim().toUpperCase(), result };
             });
-            return Response.json({ cart: viewCart(), ...(await send(KICKOFF)) });
+            return Response.json({ cart: viewCart(), aud, ...(await send(KICKOFF)) });
           },
         },
         "/api/chat": {
